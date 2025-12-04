@@ -15,6 +15,12 @@ struct ContentView: View {
     
     @State private var selectedTab: TopTab = .profile
     
+    @State private var userName = "Jack Nguyen"
+    @State private var userBio = "hn365@cornell.edu"
+    @State private var userMajor = "CS"
+    @State private var userImage: UIImage? = nil
+
+    
     var body: some View {
         NavigationStack {
             VStack(spacing:0) {
@@ -87,8 +93,20 @@ struct ContentView: View {
                         .scaledToFit()
                         .frame(width: 100, height: 100)
                         .foregroundColor(.gray.opacity(0.7))
-                    
-                    Button { } label: {
+                    NavigationLink {
+                        EditProfileView(
+                            name: userName,
+                            bio: userBio,
+                            major: userMajor,
+                            selectedImage: userImage,
+                            onSave: { newName, newBio, newMajor, newImage in
+                                userName = newName
+                                userBio = newBio
+                                userMajor = newMajor
+                                userImage = newImage
+                            }
+                        )
+                    } label: {
                         Text("Edit profile")
                             .font(.system(size: 14))
                             .fontWeight(.bold)
