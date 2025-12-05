@@ -18,7 +18,7 @@ struct HackChallengeApp: App {
         WindowGroup {
             Group {
                 if isLoggedIn {
-                    ContentView()
+                    WelcomeFlowView()
                 } else {
                     LoginView(isLoggedIn: $isLoggedIn)
                 }

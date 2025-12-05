@@ -22,19 +22,20 @@ struct LoginView: View {
                 .font(.system(size: 40, weight: .bold))
                 .foregroundColor(.white)
                 .multilineTextAlignment(.center)
+                .padding(.vertical, 40)
 
-            Image("StuddyBuddyLogo")
+            Image("logo2")
                 .resizable()
-                .scaledToFit()
-                .frame(width: 180)
+                .scaledToFill()
 
             Spacer()
+                .frame(height: 20)
 
             Button(action: {
                 performGoogleLogin()
             }) {
                 HStack {
-                    Image("googleLogo")
+                    Image("googlelogo")
                         .resizable()
                         .frame(width: 24, height: 24)
 
@@ -51,6 +52,7 @@ struct LoginView: View {
             }
 
             Spacer()
+                .frame(height: 40)
         }
         .background(
             LinearGradient(
