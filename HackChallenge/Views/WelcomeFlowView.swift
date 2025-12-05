@@ -7,7 +7,11 @@
 
 import SwiftUI
 
+// MARK: - ROOT ONBOARDING FLOW
+
 struct WelcomeFlowView: View {
+    @Binding var didCompleteOnboarding: Bool
+
     @State private var firstName = ""
     @State private var lastName = ""
     @State private var pronouns = ""
@@ -16,14 +20,21 @@ struct WelcomeFlowView: View {
 
     var body: some View {
         NavigationStack {
-            WelcomeScreen(firstName: $firstName)
+            WelcomeScreen(
+                firstName: $firstName,
+                didCompleteOnboarding: $didCompleteOnboarding
+            )
         }
         .ignoresSafeArea()
     }
 }
 
+// MARK: - SCREEN 1: Welcome
+
 struct WelcomeScreen: View {
     @Binding var firstName: String
+    @Binding var didCompleteOnboarding: Bool
+
     var body: some View {
         ZStack {
             GradientBackground()
@@ -31,14 +42,18 @@ struct WelcomeScreen: View {
             VStack(spacing: 40) {
                 Spacer()
 
-                Text("Welcome,\nJohn")
+                Text("Welcome!")
                     .font(.system(size: 40, weight: .bold))
                     .foregroundColor(.white)
-                    .multilineTextAlignment(.leading)
 
                 Spacer()
 
-                NavigationLink(destination: NameScreen(firstName: $firstName)) {
+                NavigationLink(
+                    destination: NameScreen(
+                        firstName: $firstName,
+                        didCompleteOnboarding: $didCompleteOnboarding
+                    )
+                ) {
                     Text("Create profile")
                         .font(.headline)
                         .foregroundColor(.white)
@@ -55,8 +70,12 @@ struct WelcomeScreen: View {
     }
 }
 
+// MARK: - SCREEN 2: Name + Pronouns
+
 struct NameScreen: View {
     @Binding var firstName: String
+    @Binding var didCompleteOnboarding: Bool
+
     @State private var lastName = ""
     @State private var pronouns = ""
 
@@ -76,7 +95,13 @@ struct NameScreen: View {
                 CustomTextField("Last name", text: $lastName)
                 CustomTextField("Pronouns", text: $pronouns)
 
-                NavigationLink(destination: ContactScreen()) {
+                NavigationLink(
+                    destination: ContactScreen(
+                        didCompleteOnboarding: $didCompleteOnboarding,
+                        email: "",
+                        phone: ""
+                    )
+                ) {
                     PinkNextButton()
                 }
 
@@ -87,10 +112,12 @@ struct NameScreen: View {
     }
 }
 
+// MARK: - SCREEN 3: Email + Phone
 
 struct ContactScreen: View {
-    @State private var email = ""
-    @State private var phone = ""
+    @Binding var didCompleteOnboarding: Bool
+    @State var email: String
+    @State var phone: String
 
     var body: some View {
         ZStack {
@@ -108,9 +135,17 @@ struct ContactScreen: View {
                 CustomTextField("Phone number", text: $phone)
 
                 Button {
-                    print("Finished onboarding")
+                    // Done → tell app we finished onboarding
+                    didCompleteOnboarding = true
                 } label: {
-                    PinkNextButton()
+                    Text("Done")
+                        .font(.headline)
+                        .foregroundColor(.white)
+                        .padding()
+                        .frame(maxWidth: .infinity)
+                        .background(Color(hex: 0xF7798D))
+                        .cornerRadius(16)
+                        .padding(.horizontal, 40)
                 }
 
                 Spacer()
@@ -119,6 +154,8 @@ struct ContactScreen: View {
         }
     }
 }
+
+// MARK: - Reusable Components
 
 struct PinkNextButton: View {
     var body: some View {
@@ -161,6 +198,6 @@ struct GradientBackground: View {
             startPoint: .top,
             endPoint: .bottom
         )
+        .ignoresSafeArea()
     }
 }
-
