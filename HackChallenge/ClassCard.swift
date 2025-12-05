@@ -7,7 +7,6 @@
 
 import SwiftUI
 
-
 struct ClassCardView: View {
     let classItem: Class
     
