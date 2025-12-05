@@ -5,88 +5,98 @@
 //  Created by Nguyen Huu An Khang  on 12/1/25.
 //
 
+//
+//  ClassSearchView.swift
+//  HackChallenge
+//
+
 import SwiftUI
 
 struct ClassSearchView: View {
     @Environment(\.dismiss) var dismiss
     
     @State private var query = ""
-    @State private var showFilters = false
-    @State private var selectedType: ClassType? = nil   
+    @State private var courses: [Course] = []        // 🔥 now empty
+    @State private var isLoading = true              // 🔥 show spinner until API loads
     
-    var filtered: [Class] {
-        filteredClasses(query, selectedType: selectedType)
+    // MARK: - Filtered Courses
+    var filtered: [Course] {
+        courses.filter { course in
+            
+            // HIDE course if ALL its sessions are already added
+            if let courseSessions = course.sessions {
+                let addedIDs = ScheduleManager.shared.addedSessions.map { $0.session.id }
+                let remaining = courseSessions.filter { !addedIDs.contains($0.id) }
+                
+                if remaining.isEmpty { return false }
+            }
+
+            // Search logic
+            if query.isEmpty { return true }
+            let q = query.lowercased()
+
+            return course.code.lowercased().hasPrefix(q) 
+        }
     }
     
     var body: some View {
         VStack {
             
-            ZStack(alignment: .topTrailing) {
+            // SEARCH BAR
+            HStack(spacing: 12) {
+                Image(systemName: "magnifyingglass")
+                    .foregroundColor(.white)
                 
-                HStack {
-                    HStack(spacing: 12) {
-                        Image(systemName: "magnifyingglass")
-                            .font(.system(size: 20))
-                            .foregroundColor(.white)
-
-                        TextField("Search Class", text: $query)
-                            .foregroundColor(.white)
-                            .font(.system(size: 20))
-
-                        Spacer()
-
-                        // FILTER ICON
-                        Button {
-                            withAnimation { showFilters.toggle() }
-                        } label: {
-                            Image(systemName: "line.horizontal.3")
-                                .font(.system(size: 20))
-                                .foregroundColor(.white)
+                TextField("Search Course", text: $query)
+                    .foregroundColor(.white)
+                    .font(.system(size: 16))
+                
+                Spacer()
+            }
+            .padding(.horizontal, 20)
+            .frame(height: 40)
+            .background(Color(hex:0xFFC1CB))
+            .cornerRadius(28)
+            .padding(.horizontal, 30)
+            .padding(.top, 8)
+            
+            
+            // LOADING STATE
+            if isLoading {
+                ProgressView("Loading courses...")
+                    .padding(.top, 40)
+            } else {
+                
+                // RESULTS LIST
+                ScrollView {
+                    LazyVStack(spacing: 16) {
+                        ForEach(filtered) { course in
+                            NavigationLink {
+                                SessionView(
+                                    courseName: course.code,
+                                    sessions: course.sessions ?? []
+                                )
+                            } label: {
+                                CourseCardView(course: course)
+                            }
                         }
                     }
-                    .padding(.horizontal, 20)
-                    .frame(height: 55)
-                    .background(Color(red: 0.80, green: 0.80, blue: 0.80))
-                    .cornerRadius(28)
-                }
-                .padding(.horizontal, 20)
-                .padding(.top, 8)
-                
-                if showFilters {
-                    VStack(alignment: .leading, spacing: 12) {
-                        
-                        Button("LEC") {
-                            selectedType = .lec
-                            showFilters = false
-                        }
-                        
-                        Button("DIS") {
-                            selectedType = .dis
-                            showFilters = false
-                        }
-                        
-                        Button("LAB") {
-                            selectedType = .lab
-                            showFilters = false
-                        }
-                    }
-                    .padding(12)
-                    .background(Color(.systemGray5))
-                    .cornerRadius(10)
-                    .shadow(radius: 5)
-                    .padding(.top, 60)
-                    .padding(.trailing, 35)
-                    .transition(.opacity)
+                    .padding(.top, 20)
+                    .padding(.horizontal, 25)
                 }
             }
-            ScrollView {
-                LazyVStack(spacing: 16) {
-                    ForEach(filtered) { classItem in
-                        ClassCardView(classItem: classItem)
-                    }
-                }
-                .padding(.top, 20)
-                .padding(.horizontal, 10)
+        }
+        .onAppear {
+            loadCourses()
+        }
+    }
+    
+    // MARK: - API Fetch
+    func loadCourses() {
+        NetworkManager.shared.getAllCourses { fetchedCourses in
+            DispatchQueue.main.async {
+                self.courses = fetchedCourses
+                self.isLoading = false
             }
         }
     }
@@ -95,20 +105,3 @@ struct ClassSearchView: View {
 #Preview {
     ClassSearchView()
 }
-
-
-func filteredClasses(_ query: String, selectedType: ClassType?) -> [Class] {
-    
-    sampleClasses.filter { classObj in
-        
-        let matchesQuery =
-            query.isEmpty ||
-            classObj.name.lowercased().contains(query.lowercased())
-        let matchesType =
-            (selectedType == nil) || (classObj.type == selectedType)
-        
-        return matchesQuery && matchesType
-    }
-}
-
-

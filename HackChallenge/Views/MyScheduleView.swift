@@ -23,7 +23,7 @@ struct MyScheduleView: View {
                         VStack(alignment: .leading, spacing: 12) {
 
                             ForEach(schedule.addedSessions, id: \.session.id) { item in
-                                SessionCardView(
+                                ScheduleCardView(
                                     session: item.session,
                                     courseName: item.courseName
                                 )

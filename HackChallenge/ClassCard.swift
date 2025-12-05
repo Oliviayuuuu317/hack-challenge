@@ -7,66 +7,37 @@
 
 import SwiftUI
 
-struct ClassCardView: View {
-    let classItem: Class
+struct CourseCardView: View {
+    let course: Course
     
     var body: some View {
         HStack(spacing: 16) {
             
+            // Left rounded square icon
             RoundedRectangle(cornerRadius: 20)
-                .fill(Color(red: 0.88, green: 0.95, blue: 1.0))
-                .frame(width: 70, height: 70)
+                .fill(Color.blue.opacity(0.1))
+                .frame(width: 60, height: 60)
+                .overlay(
+                    Image("chem")
+                        .resizable()
+                        .scaledToFit()
+                        .foregroundColor(.blue.opacity(0.6))
+                )
             
-            VStack(alignment: .leading, spacing: 6) {
+            // Course name + type
+            VStack(alignment: .leading, spacing: 4) {
+                Text(course.code)
+                    .font(.system(size: 20, weight: .semibold))
+                    .foregroundColor(Color(hex:0x777777))
                 
-                HStack(spacing: 8) {
-                    Text("\(classItem.name) \(classItem.section)")
-                        .font(.system(size: 18, weight: .medium))
-                        .foregroundColor(.gray)
-                
-                    if classItem.type == .lab {
-                        Text("LAB")
-                            .font(.system(size: 14))
-                            .foregroundColor(Color(.lightGray))
-                    }else if classItem.type == .lec {
-                        Text("LEC")
-                            .font(.system(size: 14))
-                            .foregroundColor(Color(.lightGray))
-                    }else{
-                        Text("DIS")
-                            .font(.system(size: 14))
-                            .foregroundColor(Color(.lightGray))
-                    }
-                    
-                }
-                
-                Text("\(classItem.days) \(classItem.time)")
-                    .font(.system(size: 14))
-                    .foregroundColor(Color(.lightGray))
-                
-                Text("\(classItem.location)")
-                    .font(.system(size: 14))
-                    .foregroundColor(Color(.lightGray))
             }
             
             Spacer()
             
-            VStack() {
-                Spacer()
-                Button(action: {
-                    print("Added \(classItem.name) \(classItem.section)")
-                }) {
-                    Image(systemName: "plus")
-                        .font(.system(size: 14, weight: .bold))
-                        .foregroundColor(Color(red: 0.93, green: 0.38, blue: 0.38))
-                        .padding(6)
-                        .overlay(
-                            Circle()
-                                .stroke(Color(red: 0.93, green: 0.38, blue: 0.38), lineWidth: 3)
-                        )
-            }
-            }
+            Image(systemName: "chevron.right")
+                .foregroundColor(.gray.opacity(0.6))
         }
+        .padding(.vertical, 12)
         .padding(.horizontal)
     }
 }
@@ -84,5 +55,14 @@ extension Color {
 }
 
 #Preview {
-    ClassCardView(classItem: Class(name: "CHEM 2070", section: "001", time: "8:00 AM – 8:50 AM", days: "MWF", location: "Baker Laboratory 200", type: .lec))
-}
+    CourseCardView(course: Course(
+        id: 1,
+        code: "AAS2130",
+        name: "Intro to Asian American History",
+        sessions: [
+            Session(id: 1, class_number: "9709", name: "LEC001", time: "MW 10:10AM"),
+            Session(id: 2, class_number: "9710", name: "DIS201", time: "F 10:10AM"),
+            Session(id: 3, class_number: "9711", name: "DIS202", time: "F 11:15AM"),
+            Session(id: 4, class_number: "9712", name: "DIS203", time: "F 12:20PM")
+        ]
+    ))}

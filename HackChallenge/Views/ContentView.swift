@@ -14,7 +14,7 @@ enum TopTab {
 struct ContentView: View {
     
     @State private var selectedTab: TopTab = .profile
-    @State private var userBio = "Hi, I'm Jack!"
+    @State private var userBio = "Hi  I'm Jack!"
     @State private var userName = "Jack Nguyen"
     @State private var userEmail = "hn365@cornell.edu"
     @State private var userMajor = "CS"
@@ -144,18 +144,18 @@ struct ContentView: View {
             .frame(maxWidth: .infinity, alignment: .center)
             .padding(.horizontal, 30)
             
-            Text("My schedule")
-                .font(.system(size: 32, weight: .semibold))
-                .padding(.horizontal)
-            
-            RoundedRectangle(cornerRadius: 20)
-                .stroke(Color.black, lineWidth: 3)
-                .frame(height: 250)
-                .padding(.horizontal,35)
-                .overlay(
-                    Text("Calendar Placeholder")
-                        .foregroundColor(.gray)
-                )
+//            Text("My schedule")
+//                .font(.system(size: 32, weight: .semibold))
+//                .padding(.horizontal)
+//
+//            RoundedRectangle(cornerRadius: 20)
+//                .stroke(Color.black, lineWidth: 3)
+//                .frame(height: 250)
+//                .padding(.horizontal,35)
+//                .overlay(
+//                    MyScheduleView()
+//                )
+            MyScheduleView()
             
             NavigationLink {
                 ClassSearchView()

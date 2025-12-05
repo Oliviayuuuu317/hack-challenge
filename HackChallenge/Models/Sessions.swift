@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct Session: Codable, Identifiable {
+struct Session: nonisolated Decodable, Identifiable {
     let id: Int
     let class_number: String
     let name: String
@@ -20,4 +20,5 @@ struct CourseSummary: Codable, Identifiable {
     let code: String
     let name: String
 }
+
 

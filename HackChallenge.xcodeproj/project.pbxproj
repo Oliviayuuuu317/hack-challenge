@@ -88,7 +88,6 @@
 			name = HackChallenge;
 			packageProductDependencies = (
 				B8A7B7CF2EE2957900836214 /* Alamofire */,
-				B8A7B7D12EE2957900836214 /* AlamofireDynamic */,
 				8F86CFA52EE29AE800D2294B /* GoogleSignIn */,
 				8F86CFA72EE29AE800D2294B /* GoogleSignInSwift */,
 			);
@@ -399,11 +398,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = B8A7B7CE2EE2957900836214 /* XCRemoteSwiftPackageReference "Alamofire" */;
 			productName = Alamofire;
-		};
-		B8A7B7D12EE2957900836214 /* AlamofireDynamic */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = B8A7B7CE2EE2957900836214 /* XCRemoteSwiftPackageReference "Alamofire" */;
-			productName = AlamofireDynamic;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
