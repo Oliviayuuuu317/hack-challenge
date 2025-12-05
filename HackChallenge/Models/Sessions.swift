@@ -12,8 +12,7 @@ struct Session: Codable, Identifiable {
     let class_number: String
     let name: String
     let time: String
-    let course: CourseSummary?
-    let students: [Student]?
+
 }
 
 struct CourseSummary: Codable, Identifiable {
