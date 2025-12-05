@@ -9,6 +9,13 @@ user_session_table = db.Table(
     db.Column("user_id", db.Integer, db.ForeignKey("users.id"))
 )
 
+user_interest_table = db.Table(
+    "user_interest_association",
+    db.Model.metadata,
+    db.Column("user_id", db.Integer, db.ForeignKey("users.id")),
+    db.Column("interest_id", db.Integer, db.ForeignKey("interests.id"))
+)
+
 class User(db.Model):
     """
     User model
@@ -19,11 +26,16 @@ class User(db.Model):
     name=db.Column(db.String, nullable=False)
     email=db.Column(db.String, unique=True, nullable=False)
     profile_picture=db.Column(db.String)
-    major=db.Column(db.String)
-    interests=db.Column(db.String)
-    sessions=db.relationship("Session", secondary=user_session_table, back_populates="students")
-    friendships=db.relationship("Friend", foreign_keys="[Friend.user_id]", back_populates="user", cascade='delete')
+    major_id = db.Column(db.Integer, db.ForeignKey("majors.id"))
+    major = db.relationship("Major", back_populates="users")
+    interests = db.relationship("Interest", secondary=user_interest_table, back_populates="users")
+    sessions=db.relationship("Session", secondary=user_session_table, back_populates="students", passive_deletes=True)
+    friendships=db.relationship("Friend", foreign_keys="[Friend.user_id]", back_populates="user", cascade="all, delete-orphan", passive_deletes=True)
 
+    @classmethod
+    def get_by_google_id(cls, google_id):
+        return cls.query.filter_by(google_id=google_id).first()
+    
     def __init__(self,**kwargs):
         """
         Initialize User object/entry
@@ -32,9 +44,9 @@ class User(db.Model):
         self.name = kwargs.get("name","")
         self.email = kwargs.get("email","")
         self.profile_picture =  kwargs.get("profile_picture","")
-        self.major = kwargs.get("major","")
-        self.interests=kwargs.get("interests","")
-
+        self.major = None
+        self.interests= []
+        self.sessions = []
 
     def serialize(self):
         """
@@ -46,9 +58,9 @@ class User(db.Model):
             "name": self.name,
             "email": self.email,
             "profile_picture": self.profile_picture,
-            "major": self.major,
-            "interests": self.interests,
-            "sessions": [s.simple_serialize() for s in self.sessions],
+            "major": self.major.serialize() if self.major else None,
+            "interests": [i.simple_serialize() for i in self.interests] if self.interests else [],
+            "sessions": [s.simple_serialize() for s in self.sessions] if self.interests else [],
             "friendships": [s.simple_serialize() for s in self.friendships]
         }
     
@@ -74,6 +86,7 @@ class Course(db.Model):
 
     def __init__(self, **kwargs):
         """
+        Initialize Course object/entry
         """
         self.code=kwargs.get("code","")
         self.name=kwargs.get("name","")
@@ -96,6 +109,7 @@ class Course(db.Model):
             "name": self.name
         }
     
+    
 class Session(db.Model):
     """
     Session model
@@ -107,7 +121,7 @@ class Session(db.Model):
     name = db.Column(db.String, nullable=False)
     time = db.Column(db.String)
     course = db.relationship("Course", back_populates="sessions")
-    students=db.relationship("User",secondary=user_session_table, back_populates="sessions")
+    students=db.relationship("User",secondary=user_session_table, back_populates="sessions", passive_deletes=True)
 
     def __init__(self,**kwargs):
         """
@@ -115,6 +129,7 @@ class Session(db.Model):
         self.course_id = kwargs.get("course_id")
         self.class_number = kwargs.get("class_number")
         self.name = kwargs.get("name")
+        self.time=kwargs.get("time")
 
     def serialize(self):
         """
@@ -138,6 +153,7 @@ class Session(db.Model):
             "time": self.time
         }
 
+
 class Friend(db.Model):
     """
     Friend model
@@ -148,7 +164,7 @@ class Friend(db.Model):
     friend_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
     status = db.Column(db.String, default = 'Pending', nullable=False)
     user = db.relationship("User",foreign_keys=[user_id], back_populates="friendships")
-    friend = db.relationship("User", foreign_keys=[friend_id])
+    friend = db.relationship("User", foreign_keys=[friend_id], passive_deletes=True)
 
     def __init__(self, **kwargs):
         """
@@ -165,7 +181,7 @@ class Friend(db.Model):
             "user_id": self.user_id,
             "friend_id": self.friend_id,
             "status": self.status,
-            "friend": self.friend.simple_serialize()
+            #"friend": self.friend.simple_serialize()
         }
     
     def simple_serialize(self):
@@ -176,19 +192,19 @@ class Friend(db.Model):
             "status": self.status
         }
     
+    
 class Message(db.Model):
     """
     Message Model
     """
     __tablename__="messages"
     id=db.Column(db.Integer, primary_key=True, autoincrement=True)
-    sender_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
-    receiver_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    sender_id = db.Column(db.Integer, db.ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    receiver_id = db.Column(db.Integer, db.ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     content = db.Column(db.String, nullable=False)
     sent_at = db.Column(db.DateTime, default=db.func.current_timestamp())
-    read = db.Column(db.Boolean, default=False)
-    sender = db.relationship("User", foreign_keys=[sender_id])
-    receiver = db.relationship("User", foreign_keys=[receiver_id])
+    sender = db.relationship("User", foreign_keys=[sender_id], passive_deletes=True)
+    receiver = db.relationship("User", foreign_keys=[receiver_id], passive_deletes=True)
 
     def __init__(self, **kwargs):
         """
@@ -197,7 +213,6 @@ class Message(db.Model):
         self.receiver_id = kwargs.get("receiver_id")
         self.content = kwargs.get("content", "")
         self.sent_at = kwargs.get("sent_at")
-        self.read = kwargs.get("read", False)
 
     def serialize(self):
         """
@@ -208,7 +223,6 @@ class Message(db.Model):
             "receiver_id": self.receiver_id,
             "content": self.content,
             "sent_at": self.sent_at.isoformat(),
-            "read": self.read,
             "sender": self.sender.simple_serialize(),
             "receiver": self.receiver.simple_serialize()
         }
@@ -218,11 +232,86 @@ class Message(db.Model):
         """
         return{
             "content": self.content
+        }  
+
+class Major(db.Model):
+    """
+    Major model
+    """
+    __tablename__ = "majors"
+    
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    major = db.Column(db.String, unique=True, nullable=False)
+    users = db.relationship("User", back_populates="major")
+
+    def __init__(self, **kwargs):
+        self.major = kwargs.get("major", "")
+
+    def serialize(self):
+        return {
+            "id": self.id,
+            "major": self.major
         }
 
+class InterestCategory(db.Model):
+    __tablename__="interest_categories"
+    id=db.Column(db.Integer, primary_key=True, autoincrement=True)
+    name = db.Column(db.String, unique=True, nullable=False)
+    interests=db.relationship("Interest", back_populates="category", cascade="all, delete", passive_deletes=True)
+    def __init__(self, **kwargs):
+        self.name = kwargs.get("name", "")
+
+    def serialize(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "interests": [i.simple_serialize() for i in self.interests]
+        }
+
+    def simple_serialize(self):
+        return {
+            "id": self.id,
+            "name": self.name
+        }
     
+class Interest(db.Model):
+    """
+    """
+    __tablename__ = "interests"
+    id=db.Column(db.Integer, primary_key=True, autoincrement=True)
+    name = db.Column(db.String, unique=True, nullable=False)
+    category_id=db.Column(db.Integer, db.ForeignKey("interest_categories.id"), nullable=False)
+    category = db.relationship("InterestCategory", back_populates="interests")
+    users = db.relationship("User", secondary=user_interest_table, back_populates="interests", passive_deletes=True)
 
+    def __init__(self, **kwargs):
+        self.name = kwargs.get("name", "")
+        if kwargs.get("category_id") is not None:
+            self.category_id = kwargs.get("category_id")
+        else:
+            category_name = kwargs.get("category")
+            category = InterestCategory.query.filter_by(name=category_name).first()
+            if category:
+                self.category_id = category.id
+            else:
+                category = InterestCategory(name=category_name)
+                db.session.add(category)
+                db.session.commit()
+                self.category_id = category.id
 
-        
+    def serialize(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "category": self.category.simple_serialize(),
+            "users": [u.simple_serialize() for u in self.users]
+        }
 
+    def simple_serialize(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "category_id": self.category_id
+        }
+    
 
