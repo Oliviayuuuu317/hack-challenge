@@ -65,8 +65,6 @@ The features designed include a log in page, and then a way for the user to cust
 For the visual design, I wanted to make an approach that was friendly and easy to read, since there is a bit of text when the user goes to search for their classes. I chose to use SF Pro, because that is the font most apps developed in IOS use, and that is what our front end implementation is. I made my cards and components rounded, for that soft, friendlier look, and also used a pastel color palette. Specifically, I used pink as the main theme, because it is a very fun color that gives of vibes of “caring” and “friendship”. The other colors are all more muted and pastel, to fit in and not seem abrasive on the eye.
 
 
-
-
 7. We attempted to try Web Socket, but didn't fully finish it. We included the two files server.py and client.py for Web Socket in our repo. We also have promotion material in our Figma.
 
 Note: The link, screenshots, and description will be used for the Hack Challenge website where we will showcase everyone’s final projects
