@@ -16,9 +16,7 @@ app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///%s" % db_filename
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["SQLALCHEMY_ECHO"] = True
 
-load_dotenv()
-GOOGLE_CLIENT_ID=os.getenv("GOOGLE_CLIENT_ID")
-GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET")
+GOOGLE_CLIENT_ID="437789147226-3b2ssaljk3jsjkijel1jlo9tapjqi2k3.apps.googleusercontent.com"
 
 db.init_app(app)
 with app.app_context():
@@ -189,7 +187,11 @@ def google_login():
         token=body.get("token_id")
         if not token:
             return failure_response("Missing ID Token", 400)
-        idinfo=id_token.verify_oauth2_token(token, grequests.Request(), GOOGLE_CLIENT_ID)
+        idinfo=id_token.verify_oauth2_token(token, grequests.Request())
+        print("TOKEN AUD:", idinfo.get("aud"))
+        print("EXPECTED:", GOOGLE_CLIENT_ID)
+        if idinfo["aud"] not in [GOOGLE_CLIENT_ID]:
+            return failure_response("Invalid audience", 400)
         user_id=idinfo["sub"]
         email=idinfo.get("email")
         name=idinfo.get("name")
@@ -200,8 +202,10 @@ def google_login():
             db.session.add(user)
             db.session.commit()
         return success_response(user.serialize(), 201)
-     except ValueError:
+     except Exception as e:
+          print("GOOGLE TOKEN ERROR:", str(e))
           return failure_response("Invalid token", 400)
+     
 
 # ------------------- USER ROUTES -------------------
 @app.route("/users/")
