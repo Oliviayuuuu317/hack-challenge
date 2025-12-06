@@ -5,7 +5,6 @@
 //  Created by Nguyen Huu An Khang  on 12/5/25.
 //
 
-
 import SwiftUI
 
 struct ScheduleCardView: View {
@@ -15,20 +14,17 @@ struct ScheduleCardView: View {
     var body: some View {
         HStack(spacing: 16) {
 
-            // LEFT ICON BOX
             Image("chem")
                 .resizable()
                 .scaledToFit()
                 .frame(width: 60, height: 60)
 
-            // MIDDLE TEXT CONTENT
             VStack(alignment: .leading, spacing: 5) {
 
                 HStack(spacing: 6) {
                     Text("\(courseName)-\(session.name)")
                         .font(.system(size: 16, weight: .semibold))
                         .foregroundColor(Color(hex:0x777777))
-
                 }
 
                 Text(session.time)

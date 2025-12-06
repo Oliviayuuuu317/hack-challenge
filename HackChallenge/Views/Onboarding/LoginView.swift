@@ -68,7 +68,6 @@ struct LoginView: View {
         .ignoresSafeArea()
     }
 
-    // REAL Google Sign-In handler
     func performGoogleLogin() {
 
         guard let rootViewController = UIApplication

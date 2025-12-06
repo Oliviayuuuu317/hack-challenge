@@ -16,13 +16,11 @@ struct SessionCardView: View {
     var body: some View {
         HStack(spacing: 16) {
 
-            // LEFT ICON
             Image("chem")
                 .resizable()
                 .scaledToFit()
                 .frame(width: 60, height: 60)
 
-            // MIDDLE TEXT
             VStack(alignment: .leading, spacing: 5) {
                 Text("\(courseName)-\(session.name)")
                     .font(.system(size: 16, weight: .semibold))
@@ -54,7 +52,6 @@ struct SessionCardView: View {
         .padding(.horizontal, 4)
     }
 }
-
 
 #Preview {
     SessionCardView(

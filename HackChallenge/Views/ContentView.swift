@@ -4,6 +4,7 @@
 //
 //  Created by Nguyen Huu An Khang  on 11/30/25.
 //
+
 import SwiftUI
 
 enum TopTab {
@@ -14,11 +15,12 @@ enum TopTab {
 struct ContentView: View {
     
     @State private var selectedTab: TopTab = .profile
-    @State private var userBio = "Hi  I'm Jack!"
+    @State private var userBio = "Hi, I'm Jack!"
     @State private var userName = "Jack Nguyen"
     @State private var userEmail = "hn365@cornell.edu"
     @State private var userMajor = "CS"
     @State private var userImage: UIImage? = nil
+    @State private var navigateToConnections = false
     
     @State private var showMenu = false
 
@@ -89,13 +91,18 @@ struct ContentView: View {
                         }
                     }
                 }
+                .navigationDestination(isPresented: $navigateToConnections) {
+                    ConnectionsMainView()
+                }
             }
-            
-            // SIDE MENU OVERLAY (TOP OF EVERYTHING)
             if showMenu {
-                SideMenuView(onClose: { showMenu = false })
-                    .transition(.move(edge: .leading))
-                    .zIndex(10)
+                SideMenuView(
+                    onClose: { showMenu = false },
+                    onNavigateConnections: {
+                        showMenu = false
+                        navigateToConnections = true
+                    }
+                )
             }
         }
         .animation(.easeInOut, value: showMenu)
@@ -106,11 +113,19 @@ struct ContentView: View {
             HStack(alignment: .top, spacing: 30) {
                 
                 VStack(spacing: 14) {
-                    Image("person")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 100, height: 100)
-                        .foregroundColor(.gray.opacity(0.7))
+                    if let userImage {
+                        Image(uiImage: userImage)
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: 100, height: 100)
+                            .clipShape(Circle())
+                    } else {
+                        Image("person")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 100, height: 100)
+                            .foregroundColor(.gray.opacity(0.7))
+                    }
                     NavigationLink {
                         EditProfileView(
                             name: userName,
@@ -141,22 +156,18 @@ struct ContentView: View {
                 
                 VStack(alignment: .leading, spacing: 10) {
                     HStack(spacing: 8) {
-                        Text("Jack Nguyen")
+                        Text(userName)
                             .font(.system(size: 20))
                             .fontWeight(.medium)
-                        
-                        Text("(he/him)")
-                            .foregroundColor(.gray.opacity(0.6))
-                            .font(.system(size: 14))
-                            .baselineOffset(2)
                     }
                     
-                    Text("hn365@cornell.edu")
+                    Text(userEmail)
                         .foregroundColor(.gray)
                     
-                    Text("123-456-7890")
+                    Text(userMajor)
                         .foregroundColor(.gray)
                 }
+
                 .padding(.top,20)
             }
             .frame(maxWidth: .infinity, alignment: .center)
@@ -176,7 +187,7 @@ struct ContentView: View {
             MyScheduleView()
             
             NavigationLink {
-                ClassSearchView()
+                ConnectionsMainView()
             } label: {
                 Text("Add classes")
                     .font(.title3)
@@ -193,8 +204,6 @@ struct ContentView: View {
             Spacer(minLength: 30)
         }
     }
-    
-    
     
     var searchView: some View {
         VStack(spacing:20) {

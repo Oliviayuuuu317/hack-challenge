@@ -9,7 +9,7 @@ import SwiftUI
 
 struct SessionView: View {
     let courseName: String
-    let courseID: Int        // New value we pass in
+    let courseID: Int        
 
     @State private var sessions: [Session] = []
     @State private var isLoading = true

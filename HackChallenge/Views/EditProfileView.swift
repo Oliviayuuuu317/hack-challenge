@@ -1,20 +1,24 @@
+//
+//  ConnectionsMainView.swift
+//  HackChallenge
+//
+//  Created by Ben Chen on 12/5/25.
+//
+
 import SwiftUI
 import PhotosUI
 
 struct EditProfileView: View {
     @Environment(\.dismiss) private var dismiss
 
-    // Editable fields
     @State var name: String
     @State var bio: String
     @State var email: String
     @State var major: String
     @State var selectedImage: UIImage?
 
-    // Callback to return updated values
     var onSave: (String, String, String, String, UIImage?) -> Void
 
-    // Photo picker
     @State private var showPhotoPicker = false
     @State private var photoItem: PhotosPickerItem?
 

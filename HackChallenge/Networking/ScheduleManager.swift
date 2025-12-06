@@ -15,7 +15,6 @@ class ScheduleManager: ObservableObject {
     @Published var addedSessions: [(session: Session, courseName: String)] = []
 
     func add(session: Session, courseName: String) {
-        // avoid duplicates
         if !addedSessions.contains(where: { $0.session.id == session.id }) {
             addedSessions.append((session: session, courseName: courseName))
         }

@@ -2,7 +2,7 @@
 //  Student.swift
 //  HackChallenge
 //
-//  Created by Ben Chen on 12/4/25.
+//  Created by Nguyen Huu An Khang on 12/4/25.
 //
 
 import Foundation

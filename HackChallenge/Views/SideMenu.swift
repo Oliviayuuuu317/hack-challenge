@@ -9,6 +9,7 @@ import SwiftUI
 
 struct SideMenuView: View {
     var onClose: () -> Void
+    var onNavigateConnections: () -> Void
 
     var body: some View {
         ZStack(alignment: .leading) {
@@ -18,7 +19,6 @@ struct SideMenuView: View {
 
             VStack(alignment: .leading, spacing: 0) {
 
-                // Close Button
                 HStack {
                     Spacer()
                     Button(action: onClose) {
@@ -30,9 +30,12 @@ struct SideMenuView: View {
                 }
                 .frame(height: 70)
 
-                Button("My connections") {}
-                    .padding()
-                    .foregroundColor(.white)
+                Button("My connections") {
+                    onClose()
+                    onNavigateConnections()
+                }
+                .padding()
+                .foregroundColor(.white)
 
                 Divider().background(Color.white.opacity(0.4))
 
