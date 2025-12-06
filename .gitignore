@@ -11,5 +11,9 @@ __pycache__/
 venv/
 .venv/
 
+instance/
+config.json
+credentials.json
+service_account.json
 
 .DS_Store
