@@ -4,13 +4,16 @@
 
 3. Link to GitHub repo: https://github.com/Oliviayuuuu317/hack-challenge.git
 
-4. Some screenshots of your app (highlight important features)
-
+4. Screenshots link: https://drive.google.com/drive/folders/1Dx7OG3t3CFt-TH3o1tlPPHJEZ-2BWDns?usp=sharing
 
 5. Users sign in with their Google account, then add Cornell courses and sessions to their profile to build their course schedule. They can search based on course and session preferences, and the app will recommend the top 10 users who share the same courses, sessions, or optional interests.
 
 6.
 Backend:
+We designed our backend with a relational database structure to support course data, interactions between users, and personalized matching. We have some predefined tables: Course, Session, Major, InterestCategory, and Interest. For courses and sessions, we fetch all  courses and sessions from Cornell Class Roster.
+
+At the final part, we implemented a matching and recommendation system that suggests the top 10 most compatible study buddies for user in a specific course or session. The matching logic is based on overlapping class sessions, shared majors, and common interests.
+
 [Login Authentication]
 Routes: POST(Google OAuth login)
 Google login auto creates a User row in the USER TABLE
@@ -64,7 +67,5 @@ The features designed include a log in page, and then a way for the user to cust
 
 For the visual design, I wanted to make an approach that was friendly and easy to read, since there is a bit of text when the user goes to search for their classes. I chose to use SF Pro, because that is the font most apps developed in IOS use, and that is what our front end implementation is. I made my cards and components rounded, for that soft, friendlier look, and also used a pastel color palette. Specifically, I used pink as the main theme, because it is a very fun color that gives of vibes of “caring” and “friendship”. The other colors are all more muted and pastel, to fit in and not seem abrasive on the eye.
 
-
 7. We attempted to try Web Socket, but didn't fully finish it. We included the two files server.py and client.py for Web Socket in our repo. We also have promotion material in our Figma.
 
-Note: The link, screenshots, and description will be used for the Hack Challenge website where we will showcase everyone’s final projects
