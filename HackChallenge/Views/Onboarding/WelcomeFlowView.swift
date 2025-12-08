@@ -8,6 +8,7 @@
 import SwiftUI
 import PhotosUI
 
+// MARK: - Static lists
 
 let majors_list = [
     "Agricultural Sciences", "Animal Science", "Anthropology",
@@ -48,6 +49,8 @@ let categories_list: [String: [String]] = [
     "Tech": ["Programming", "Robotics", "Astronomy", "AI", "Electronics"]
 ]
 
+// MARK: - ROOT ONBOARDING FLOW
+
 struct OnboardingFlowView: View {
     @Binding var didCompleteOnboarding: Bool
     @State private var profileImage: UIImage? = nil
@@ -61,6 +64,8 @@ struct OnboardingFlowView: View {
         }
     }
 }
+
+// MARK: - SCREEN 1: Profile Photo
 
 struct ProfilePhotoScreen: View {
 
@@ -122,7 +127,6 @@ struct ProfilePhotoScreen: View {
                 }
                 .padding(.horizontal, 40)
 
-                // Skip
                 NavigationLink {
                     MajorSelectionScreen(
                         profileImage: profileImage,
@@ -137,17 +141,25 @@ struct ProfilePhotoScreen: View {
             }
         }
         .photosPicker(isPresented: $showPicker, selection: $selectedItem)
-        .onChange(of: selectedItem) {
-            guard let item = selectedItem else { return }
+        .onChange(of: selectedItem) { _, newItem in
+            guard let item = newItem else { return }
             Task {
                 if let data = try? await item.loadTransferable(type: Data.self),
                    let uiImage = UIImage(data: data) {
+                    // Update local state
                     profileImage = uiImage
+
+                    // Persist to CurrentUser if we have a logged-in user
+                    if let userID = CurrentUser.shared.user?.id {
+                        CurrentUser.shared.setProfileImage(uiImage, for: userID)
+                    }
                 }
             }
         }
     }
 }
+
+// MARK: - SCREEN 2: Major Selection
 
 struct MajorSelectionScreen: View {
 
@@ -230,6 +242,8 @@ struct MajorSelectionScreen: View {
     }
 }
 
+// MARK: - SCREEN 3: Interests
+
 struct InterestCategoryScreen: View {
 
     var profileImage: UIImage?
@@ -289,7 +303,7 @@ struct InterestCategoryScreen: View {
                         major: selectedMajor,
                         interests: interestInputs
                     ) { updatedUser in
-                        
+
                         if let updatedUser = updatedUser {
                             print("Updated user:", updatedUser)
                             CurrentUser.shared.user = updatedUser
@@ -303,7 +317,6 @@ struct InterestCategoryScreen: View {
                 }
                 .disabled(selectedInterests.isEmpty)
                 .opacity(selectedInterests.isEmpty ? 0.5 : 1)
-
 
                 Spacer()
             }
@@ -319,31 +332,6 @@ struct InterestCategoryScreen: View {
             }
         }
         return "Unknown"
-    }
-
-    func submitUpdatedUser() {
-        guard let user = CurrentUser.shared.user else {
-            print("No logged-in user stored")
-            return
-        }
-
-        let interestInputs = selectedInterests.map {
-            InterestInput(name: $0, category: categoryOf($0))
-        }
-
-        NetworkManager.shared.updateUser(
-            userID: user.id,
-            major: selectedMajor,
-            interests: interestInputs
-        ) { updated in
-            if let updated = updated {
-                print("User Updated:", updated)
-                CurrentUser.shared.user = updated
-                didCompleteOnboarding = true
-            } else {
-                print("User update failed")
-            }
-        }
     }
 
     func dropdownLabel(text: String) -> some View {
@@ -380,6 +368,8 @@ struct InterestCategoryScreen: View {
     }
 }
 
+// MARK: - Shared Components
+
 struct PinkNextButton: View {
     var text: String
 
@@ -408,4 +398,3 @@ extension Color {
 #Preview {
     OnboardingFlowView(didCompleteOnboarding: .constant(false))
 }
-

@@ -7,6 +7,7 @@
 
 import Foundation
 import Combine
+import UIKit
 
 struct Student: Codable, Identifiable {
     let id: Int
@@ -61,13 +62,89 @@ struct InterestInput: Encodable {
     let category: String
 }
 
+/// Global current user singleton
 class CurrentUser: ObservableObject {
 
     static let shared = CurrentUser()
-
     private init() {}
 
     @Published var user: User?
+
+    /// In-memory cache of profile images keyed by user id
+    private var profileImageCache: [Int: UIImage] = [:]
+
+    /// File URL for a user's profile image stored on disk
+    private func profileImageURL(for userID: Int) -> URL? {
+        let fm = FileManager.default
+        do {
+            let docs = try fm.url(
+                for: .documentDirectory,
+                in: .userDomainMask,
+                appropriateFor: nil,
+                create: true
+            )
+            return docs.appendingPathComponent("profile_\(userID).jpg")
+        } catch {
+            print("❌ Failed to get documents directory:", error)
+            return nil
+        }
+    }
+
+    /// Load (and cache) profile image for a given user id
+    func profileImage(for userID: Int) -> UIImage? {
+        // 1. Check in-memory cache first
+        if let cached = profileImageCache[userID] {
+            return cached
+        }
+
+        // 2. Try to load from disk
+        guard let url = profileImageURL(for: userID),
+              FileManager.default.fileExists(atPath: url.path) else {
+            return nil
+        }
+
+        do {
+            let data = try Data(contentsOf: url)
+            if let image = UIImage(data: data) {
+                profileImageCache[userID] = image
+                return image
+            }
+        } catch {
+            print("❌ Failed to load profile image from disk:", error)
+        }
+
+        return nil
+    }
+
+    /// Save (and cache) profile image for a given user id.
+    /// Pass `nil` to remove the stored image.
+    func setProfileImage(_ image: UIImage?, for userID: Int) {
+        profileImageCache[userID] = image
+
+        guard let url = profileImageURL(for: userID) else { return }
+        let fm = FileManager.default
+
+        // Remove existing file if image is nil
+        guard let image = image else {
+            do {
+                if fm.fileExists(atPath: url.path) {
+                    try fm.removeItem(at: url)
+                }
+            } catch {
+                print("❌ Failed to remove profile image from disk:", error)
+            }
+            return
+        }
+
+        // Save new image to disk
+        if let data = image.jpegData(compressionQuality: 0.9) ?? image.pngData() {
+            do {
+                try data.write(to: url, options: .atomic)
+            } catch {
+                print("❌ Failed to write profile image to disk:", error)
+            }
+        }
+    }
 }
 
 struct ScheduleCourseSummary: Codable {

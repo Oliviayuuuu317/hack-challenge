@@ -89,6 +89,11 @@ struct EditProfileView: View {
                 // MARK: - Save Button
                 Button(action: {
                     onSave(name, bio, email, major, selectedImage)
+
+                    if let id = CurrentUser.shared.user?.id {
+                        CurrentUser.shared.setProfileImage(selectedImage, for: id)
+                    }
+
                     dismiss()
                 }) {
                     Text("Save")

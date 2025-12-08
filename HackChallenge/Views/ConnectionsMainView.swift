@@ -222,16 +222,25 @@ struct RequestsView: View {
                     
                     Spacer()
                     
+                    // ACCEPT BUTTON
                     Button("Accept") {
+                        // 1️⃣ Remove from requests
                         requests.removeAll { $0.id == user.id }
+                        
+                        // 2️⃣ Add to connections
                         connections.append(user)
+                        
+                        // 3️⃣ Switch tab to "Connections"
                         setTab(0)
                     }
                     .padding(6)
                     .background(Color.green.opacity(0.5))
                     .cornerRadius(8)
                     
+                    // DECLINE BUTTON
                     Button("Decline") {
+                        // ONLY remove;
+                        // Do NOT add to connections.
                         requests.removeAll { $0.id == user.id }
                     }
                     .padding(6)
@@ -239,38 +248,6 @@ struct RequestsView: View {
                     .cornerRadius(8)
                 }
                 .padding(.vertical, 6)
-            }
-        }
-        .listStyle(.plain)
-    }
-}
-
-// MARK: - REQUESTED OUTGOING VIEW
-
-struct RequestedView: View {
-    @Binding var outgoing: [UserConnection]
-    
-    var body: some View {
-        List {
-            ForEach(outgoing) { user in
-                HStack {
-                    Circle()
-                        .fill(Color(hex: 0xF7AFC2))
-                        .frame(width: 50, height: 50)
-                        .overlay(Text(user.name.prefix(1)))
-                    
-                    VStack(alignment: .leading) {
-                        Text(user.name)
-                        Text(user.email)
-                            .font(.caption)
-                            .foregroundColor(.gray)
-                    }
-                    
-                    Spacer()
-                    
-                    Text("Pending")
-                        .foregroundColor(.gray)
-                }
             }
         }
         .listStyle(.plain)

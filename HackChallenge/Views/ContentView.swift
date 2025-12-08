@@ -15,7 +15,7 @@ enum TopTab {
 struct ContentView: View {
 
     // MARK: - Login Bindings
-    
+
     @Binding var isLoggedIn: Bool
     @Binding var didCompleteOnboarding: Bool
 
@@ -41,8 +41,25 @@ struct ContentView: View {
                       courses: ["CHEM 3570"])
     ]
 
+    // MARK: - Init to preload profile image if available
+
+    init(isLoggedIn: Binding<Bool>, didCompleteOnboarding: Binding<Bool>) {
+        self._isLoggedIn = isLoggedIn
+        self._didCompleteOnboarding = didCompleteOnboarding
+
+        if let user = CurrentUser.shared.user {
+            let initialImage = CurrentUser.shared.profileImage(for: user.id)
+            _userImage = State(initialValue: initialImage)
+            _userName = State(initialValue: user.name)
+            _userEmail = State(initialValue: user.email)
+            if let major = user.major?.major {
+                _userMajor = State(initialValue: major)
+            }
+        }
+    }
+
     // MARK: - Body
-    
+
     var body: some View {
         NavigationStack {
             ZStack {
@@ -57,7 +74,6 @@ struct ContentView: View {
                     }
                 }
 
-                // SIDE MENU
                 if showMenu {
                     SideMenuView(
                         onClose: { showMenu = false },
@@ -79,6 +95,21 @@ struct ContentView: View {
         }
         .ignoresSafeArea(.keyboard, edges: .bottom)
         .animation(.easeInOut, value: showMenu)
+        .onAppear {
+            refreshUserFromCurrentUser()
+        }
+    }
+
+    private func refreshUserFromCurrentUser() {
+        guard let user = CurrentUser.shared.user else { return }
+        userName = user.name
+        userEmail = user.email
+        if let major = user.major?.major {
+            userMajor = major
+        }
+        if let image = CurrentUser.shared.profileImage(for: user.id) {
+            userImage = image
+        }
     }
 
     // MARK: - Top Bar
@@ -173,6 +204,10 @@ struct ContentView: View {
                             userEmail = newEmail
                             userMajor = newMajor
                             userImage = newImage
+
+                            if let id = CurrentUser.shared.user?.id {
+                                CurrentUser.shared.setProfileImage(newImage, for: id)
+                            }
                         }
                     } label: {
                         Text("Edit Profile")
