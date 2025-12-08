@@ -26,13 +26,27 @@ struct User: nonisolated Decodable, Identifiable {
     let friendships: [Friendship]
 }
 
+struct Friend: nonisolated Decodable, Identifiable {
+    let id: Int
+    let name: String
+    let email: String
+}
+
+struct FriendListResponse: nonisolated Decodable {
+    let friends: [Friend]
+}
+
 struct Friendship: nonisolated Decodable, Identifiable {
     var id: Int { friend_id }
     let friend_id: Int
     let status: String
 }
 
-struct SearchStudent: Identifiable {
+struct StudentListResponse: nonisolated Decodable {
+    let students: [SearchStudent]
+}
+
+struct SearchStudent: nonisolated Decodable, Identifiable {
     let id: Int
     let name: String
     let email: String
@@ -50,19 +64,11 @@ struct Interest: Codable {
     let category_id: Int?
 }
 
-struct SessionSummary: Codable {
-    let id: Int
-    let class_number: String
-    let name: String
-    let time: String
-}
-
 struct InterestInput: Encodable {
     let name: String
     let category: String
 }
 
-/// Global current user singleton
 class CurrentUser: ObservableObject {
 
     static let shared = CurrentUser()
@@ -70,10 +76,8 @@ class CurrentUser: ObservableObject {
 
     @Published var user: User?
 
-    /// In-memory cache of profile images keyed by user id
     private var profileImageCache: [Int: UIImage] = [:]
 
-    /// File URL for a user's profile image stored on disk
     private func profileImageURL(for userID: Int) -> URL? {
         let fm = FileManager.default
         do {
@@ -90,14 +94,11 @@ class CurrentUser: ObservableObject {
         }
     }
 
-    /// Load (and cache) profile image for a given user id
     func profileImage(for userID: Int) -> UIImage? {
-        // 1. Check in-memory cache first
         if let cached = profileImageCache[userID] {
             return cached
         }
 
-        // 2. Try to load from disk
         guard let url = profileImageURL(for: userID),
               FileManager.default.fileExists(atPath: url.path) else {
             return nil
@@ -116,15 +117,12 @@ class CurrentUser: ObservableObject {
         return nil
     }
 
-    /// Save (and cache) profile image for a given user id.
-    /// Pass `nil` to remove the stored image.
     func setProfileImage(_ image: UIImage?, for userID: Int) {
         profileImageCache[userID] = image
 
         guard let url = profileImageURL(for: userID) else { return }
         let fm = FileManager.default
 
-        // Remove existing file if image is nil
         guard let image = image else {
             do {
                 if fm.fileExists(atPath: url.path) {
@@ -136,7 +134,6 @@ class CurrentUser: ObservableObject {
             return
         }
 
-        // Save new image to disk
         if let data = image.jpegData(compressionQuality: 0.9) ?? image.pngData() {
             do {
                 try data.write(to: url, options: .atomic)
@@ -145,20 +142,6 @@ class CurrentUser: ObservableObject {
             }
         }
     }
-}
-
-struct ScheduleCourseSummary: Codable {
-    let id: Int
-    let code: String
-    let name: String
-}
-
-struct ScheduleSession: Codable, Identifiable {
-    let id: Int
-    let class_number: String
-    let name: String
-    let time: String
-    let course: ScheduleCourseSummary
 }
 
 struct ScheduleResponse: nonisolated Decodable {

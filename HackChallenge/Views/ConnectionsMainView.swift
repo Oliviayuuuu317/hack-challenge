@@ -12,17 +12,9 @@ import SwiftUI
 struct ConnectionsMainView: View {
     @State private var selectedTab = 0
     
-    @State private var connections: [UserConnection] = [
-        UserConnection(id: 1, name: "Mr. Eggplant", email: "eggplant@cornell.edu")
-    ]
-    
-    @State private var requests: [UserConnection] = [
-        UserConnection(id: 3, name: "John Smith", email: "jsmith@cornell.edu")
-    ]
-    
-    @State private var outgoing: [UserConnection] = [
-        UserConnection(id: 4, name: "Gojo Satoru", email: "purple@cornell.edu")
-    ]
+    @State private var connections: [UserConnection] = []
+    @State private var requests: [UserConnection] = []
+    @State private var outgoing: [UserConnection] = []
     
     var body: some View {
         VStack(spacing: 0) {
@@ -53,11 +45,28 @@ struct ConnectionsMainView: View {
         }
         .navigationTitle("")
         .navigationBarTitleDisplayMode(.inline)
+        .onAppear { loadData() }
+    }
+    
+    // MARK: - LOAD FROM BACKEND
+    func loadData() {
+        guard let userID = CurrentUser.shared.user?.id else { return }
+        
+        NetworkManager.shared.getConnections(userID: userID) { list in
+            connections = list
+        }
+        
+        NetworkManager.shared.getIncomingRequests(userID: userID) { list in
+            requests = list
+        }
+        
+        NetworkManager.shared.getOutgoingRequests(userID: userID) { list in
+            outgoing = list
+        }
     }
 }
 
 // MARK: - SEGMENT BUTTON
-
 struct SegmentButton: View {
     let title: String
     let index: Int
@@ -82,7 +91,6 @@ struct SegmentButton: View {
 }
 
 // MARK: - CONNECTIONS VIEW
-
 struct ConnectionsView: View {
     @Binding var connections: [UserConnection]
     
@@ -150,7 +158,7 @@ struct ConnectionsView: View {
         .overlay(removePopup)
     }
     
-    // MARK: - POPUP
+    // MARK: - REMOVE POPUP
     @ViewBuilder
     var removePopup: some View {
         if let user = toRemove {
@@ -199,7 +207,6 @@ struct ConnectionsView: View {
 }
 
 // MARK: - REQUESTS VIEW
-
 struct RequestsView: View {
     @Binding var requests: [UserConnection]
     @Binding var connections: [UserConnection]
@@ -222,26 +229,37 @@ struct RequestsView: View {
                     
                     Spacer()
                     
-                    // ACCEPT BUTTON
                     Button("Accept") {
-                        // 1️⃣ Remove from requests
-                        requests.removeAll { $0.id == user.id }
+                        guard let userID = CurrentUser.shared.user?.id else { return }
                         
-                        // 2️⃣ Add to connections
-                        connections.append(user)
-                        
-                        // 3️⃣ Switch tab to "Connections"
-                        setTab(0)
+                        NetworkManager.shared.respondToRequest(
+                            userID: userID,
+                            friendID: user.id,
+                            action: "accept"
+                        ) { success in
+                            if success {
+                                requests.removeAll { $0.id == user.id }
+                                connections.append(user)
+                                setTab(0)
+                            }
+                        }
                     }
                     .padding(6)
                     .background(Color.green.opacity(0.5))
                     .cornerRadius(8)
                     
-                    // DECLINE BUTTON
                     Button("Decline") {
-                        // ONLY remove;
-                        // Do NOT add to connections.
-                        requests.removeAll { $0.id == user.id }
+                        guard let userID = CurrentUser.shared.user?.id else { return }
+                        
+                        NetworkManager.shared.respondToRequest(
+                            userID: userID,
+                            friendID: user.id,
+                            action: "decline"
+                        ) { success in
+                            if success {
+                                requests.removeAll { $0.id == user.id }
+                            }
+                        }
                     }
                     .padding(6)
                     .background(Color.red.opacity(0.5))
@@ -254,10 +272,42 @@ struct RequestsView: View {
     }
 }
 
-// MARK: - USER MODEL
+// MARK: - OUTGOING REQUESTS VIEW
 
-struct UserConnection: Identifiable {
-    let id: Int
-    let name: String
-    let email: String
+struct RequestedView: View {
+    @Binding var outgoing: [UserConnection]
+    
+    var body: some View {
+        List {
+            ForEach(outgoing) { user in
+                HStack {
+                    Circle()
+                        .fill(Color(hex: 0xF7AFC2))
+                        .frame(width: 50, height: 50)
+                        .overlay(Text(user.name.prefix(1)))
+                    
+                    VStack(alignment: .leading) {
+                        Text(user.name)
+                        Text(user.email)
+                            .font(.caption)
+                            .foregroundColor(.gray)
+                    }
+                    
+                    Spacer()
+                    
+                    Text("Pending")
+                        .foregroundColor(.gray)
+                }
+            }
+        }
+        .listStyle(.plain)
+    }
+}
+
+
+// MARK: - USER MODEL
+struct UserConnection: Identifiable, Hashable, Codable {
+    var id: Int
+    var name: String
+    var email: String
 }

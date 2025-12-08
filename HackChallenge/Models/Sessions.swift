@@ -14,10 +14,18 @@ struct Session: nonisolated Decodable, Identifiable {
     let time: String
 }
 
-struct CourseSummary: Codable, Identifiable {
+
+struct SessionSummary: Codable {
     let id: Int
-    let code: String
+    let class_number: String
     let name: String
+    let time: String
 }
 
-
+struct ScheduleSession: Codable, Identifiable {
+    let id: Int
+    let class_number: String
+    let name: String
+    let time: String
+    let course: ScheduleCourseSummary
+}

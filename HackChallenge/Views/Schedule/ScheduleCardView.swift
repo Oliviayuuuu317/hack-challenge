@@ -34,7 +34,6 @@ struct ScheduleCardView: View {
             
             Spacer()
             
-            /// DELETE BUTTON
             VStack{
                 Spacer()
                 Button(action: {

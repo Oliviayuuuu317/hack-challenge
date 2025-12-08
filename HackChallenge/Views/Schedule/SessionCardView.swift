@@ -37,10 +37,8 @@ struct SessionCardView: View {
                 
                 if !schedule.isAdded(sessionID: session.id) {
                     Button {
-                        // 🚀 1. Update UI immediately
                         schedule.add(session: session, courseName: courseName)
                         
-                        // 🚀 2. Sync with backend
                         if let user = CurrentUser.shared.user {
                             NetworkManager.shared.addSessionToUser(
                                 userID: user.id,
@@ -49,7 +47,6 @@ struct SessionCardView: View {
                                 if let updatedUser = updatedUser {
                                     print("Backend updated:", updatedUser.sessions)
                                     CurrentUser.shared.user = updatedUser
-                                    // optional: reload schedule from backend
                                 } else {
                                     print("Backend failed — reverting")
                                     DispatchQueue.main.async {

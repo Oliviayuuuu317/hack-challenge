@@ -15,56 +15,45 @@ enum TopTab {
 struct ContentView: View {
 
     // MARK: - Login Bindings
-
     @Binding var isLoggedIn: Bool
     @Binding var didCompleteOnboarding: Bool
 
+    // MARK: - User State
     @State private var selectedTab: TopTab = .profile
-    @State private var userBio = "Hi, I'm Ben!"
-    @State private var userName = "Ben Chen"
-    @State private var userEmail = "bc679@cornell.edu"
+    @State private var userBio = ""
+    @State private var userName = ""
+    @State private var userEmail = ""
     @State private var userMajor = ""
     @State private var userImage: UIImage? = nil
+
     @State private var navigateToConnections = false
     @State private var searchCourse = ""
     @State private var showMenu = false
 
-    let allStudents: [SearchStudent] = [
-        SearchStudent(id: 1, name: "Mr. Eggplant",
-                      email: "eggplant@cornell.edu",
-                      courses: ["CHEM 2070", "MATH 1110"]),
-        SearchStudent(id: 2, name: "Benjamin Chenjamin",
-                      email: "bc679@cornell.edu",
-                      courses: ["CHEM 2070", "BIO 1010"]),
-        SearchStudent(id: 3, name: "Walter White",
-                      email: "wwhite@cornell.edu",
-                      courses: ["CHEM 3570"])
-    ]
+    // MARK: - Dynamic Students (removed hardcoded array)
+    @State private var allStudents: [SearchStudent] = []
 
-    // MARK: - Init to preload profile image if available
-
+    // MARK: - Init loads initial user data if exists
     init(isLoggedIn: Binding<Bool>, didCompleteOnboarding: Binding<Bool>) {
         self._isLoggedIn = isLoggedIn
         self._didCompleteOnboarding = didCompleteOnboarding
 
         if let user = CurrentUser.shared.user {
-            let initialImage = CurrentUser.shared.profileImage(for: user.id)
-            _userImage = State(initialValue: initialImage)
             _userName = State(initialValue: user.name)
             _userEmail = State(initialValue: user.email)
             if let major = user.major?.major {
                 _userMajor = State(initialValue: major)
             }
+            if let img = CurrentUser.shared.profileImage(for: user.id) {
+                _userImage = State(initialValue: img)
+            }
         }
     }
-
-    // MARK: - Body
 
     var body: some View {
         NavigationStack {
             ZStack {
                 VStack(spacing: 0) {
-
                     topBar
 
                     if selectedTab == .profile {
@@ -95,11 +84,31 @@ struct ContentView: View {
         }
         .ignoresSafeArea(.keyboard, edges: .bottom)
         .animation(.easeInOut, value: showMenu)
+
         .onAppear {
             refreshUserFromCurrentUser()
+            loadStudents()   // 🔥 NEW: fetch from backend
+        }
+
+        .onReceive(CurrentUser.shared.$user) { newUser in
+            guard let user = newUser else { return }
+            userName = user.name
+            userEmail = user.email
+            if let major = user.major?.major { userMajor = major }
+            if let image = CurrentUser.shared.profileImage(for: user.id) {
+                userImage = image
+            }
         }
     }
 
+    // MARK: - Backend Fetch
+    private func loadStudents() {
+        NetworkManager.shared.getAllStudents { students in
+            self.allStudents = students
+        }
+    }
+
+    // MARK: - Sync local state from CurrentUser
     private func refreshUserFromCurrentUser() {
         guard let user = CurrentUser.shared.user else { return }
         userName = user.name
@@ -113,7 +122,6 @@ struct ContentView: View {
     }
 
     // MARK: - Top Bar
-
     private var topBar: some View {
         VStack(spacing: 0) {
             HStack {
@@ -171,7 +179,6 @@ struct ContentView: View {
     }
 
     // MARK: - Profile View
-
     var profileView: some View {
         VStack(alignment: .leading, spacing: 24) {
             HStack(alignment: .top, spacing: 30) {
@@ -259,8 +266,7 @@ struct ContentView: View {
         }
     }
 
-    // MARK: - Search
-
+    // MARK: - Student Search
     var filteredStudents: [SearchStudent] {
         allStudents.filter { student in
             guard !searchCourse.isEmpty else { return false }
@@ -306,6 +312,7 @@ struct ContentView: View {
                         Text("No students found")
                             .foregroundColor(.gray)
                             .padding(.top, 30)
+                            .padding(.leading, 30)
                     }
                     else {
                         ForEach(filtered) { student in

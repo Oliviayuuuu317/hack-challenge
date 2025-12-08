@@ -44,6 +44,3 @@ struct MyScheduleView: View {
         }
     }
 }
-
-
-

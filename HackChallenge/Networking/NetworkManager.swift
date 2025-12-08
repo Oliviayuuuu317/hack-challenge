@@ -90,8 +90,6 @@ extension NetworkManager {
     }
 }
 
-
-
 extension NetworkManager {
     func googleLogin(tokenID: String, completion: @escaping (User?) -> Void) {
         let url = "\(baseURL)/auth/google"
@@ -149,7 +147,6 @@ extension NetworkManager {
 }
 
 extension NetworkManager {
-    
     func addSessionToUser(userID: Int, sessionID: Int, completion: @escaping (User?) -> Void) {
         let url = "\(baseURL)/users/\(userID)/schedule/\(sessionID)/"
 
@@ -194,6 +191,106 @@ extension NetworkManager {
                 case .failure(let error):
                     print("❌ Failed to delete session:", error)
                     completion(nil)
+                }
+            }
+    }
+}
+
+// MARK: - FRIEND LISTS
+
+extension NetworkManager {
+
+    func getConnections(userID: Int, completion: @escaping ([UserConnection]) -> Void) {
+        let url = "\(baseURL)/users/\(userID)/friend/"
+
+        AF.request(url)
+            .validate()
+            .responseDecodable(of: FriendListResponse.self) { response in
+                switch response.result {
+                case .success(let data):
+                    completion(data.friends.map {
+                        UserConnection(id: $0.id, name: $0.name, email: $0.email)
+                    })
+                case .failure(let error):
+                    print("Failed to load connections:", error)
+                    completion([])
+                }
+            }
+    }
+
+    func getIncomingRequests(userID: Int, completion: @escaping ([UserConnection]) -> Void) {
+        let url = "\(baseURL)/users/\(userID)/friend/requests/"
+
+        AF.request(url)
+            .validate()
+            .responseDecodable(of: FriendListResponse.self) { response in
+                switch response.result {
+                case .success(let data):
+                    completion(data.friends.map {
+                        UserConnection(id: $0.id, name: $0.name, email: $0.email)
+                    })
+                case .failure(let error):
+                    print("Failed to load incoming requests:", error)
+                    completion([])
+                }
+            }
+    }
+
+    func getOutgoingRequests(userID: Int, completion: @escaping ([UserConnection]) -> Void) {
+        let url = "\(baseURL)/users/\(userID)/friend/outgoing/"
+
+        AF.request(url)
+            .validate()
+            .responseDecodable(of: FriendListResponse.self) { response in
+                switch response.result {
+                case .success(let data):
+                    completion(data.friends.map {
+                        UserConnection(id: $0.id, name: $0.name, email: $0.email)
+                    })
+                case .failure(let error):
+                    print("Failed to load outgoing:", error)
+                    completion([])
+                }
+            }
+    }
+
+    func respondToRequest(
+        userID: Int,
+        friendID: Int,
+        action: String,
+        completion: @escaping (Bool) -> Void
+    ) {
+        let url = "\(baseURL)/users/\(userID)/friends/\(friendID)/"
+
+        AF.request(url, method: .post,
+                   parameters: ["action": action],
+                   encoding: JSONEncoding.default)
+            .validate()
+            .response { response in
+                if response.error == nil {
+                    completion(true)
+                } else {
+                    print("Failed to respond to friend request:", response.error!)
+                    completion(false)
+                }
+            }
+    }
+}
+
+extension NetworkManager {
+
+    func getAllStudents(completion: @escaping ([SearchStudent]) -> Void) {
+        let url = "\(baseURL)/students/"
+
+        AF.request(url)
+            .validate()
+            .responseDecodable(of: StudentListResponse.self) { response in
+                switch response.result {
+                case .success(let data):
+                    completion(data.students)
+                case .failure(let error):
+                    print("Failed to load students:", error)
+                    completion([])
                 }
             }
     }
